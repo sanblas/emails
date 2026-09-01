@@ -25,25 +25,15 @@
 (function () {
   "use strict";
 
-  var params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
 
-  /*
-   * SERPOAN no propaga id al destino,
-   * pero sí conserva utm_content.
-   *
-   * Por eso el identificador del centro viaja en:
-   * utm_content=CODIGO_NOMBRE
-   */
-  var centroId = (
-    params.get("utm_content") ||
-    params.get("id") ||
-    ""
-  ).trim();
+  const centroId =
+    (params.get("utm_content") || params.get("id") || "").trim();
 
 
   function serpoan(campaign, term) {
 
-    var url = new URL(
+    const url = new URL(
       "https://sanblas.github.io/"
     );
 
@@ -77,10 +67,6 @@
       "ES"
     );
 
-    /*
-     * Al volver a entrar en SERPOAN
-     * recuperamos también el campo ID.
-     */
     if (centroId) {
       url.searchParams.set(
         "id",
@@ -88,27 +74,44 @@
       );
     }
 
+
+    /*
+     * CONSERVAR CAMPOS DE GOOGLE FORMS
+     *
+     * Ejemplo:
+     * entry.6360222=CEIP Pérez Galdós
+     */
+    for (const [key, value] of params.entries()) {
+
+      if (
+        key
+          .toLowerCase()
+          .startsWith("entry.")
+      ) {
+
+        url.searchParams.set(
+          key,
+          value
+        );
+
+      }
+
+    }
+
+
     return url.toString();
   }
 
 
   /*
    * DOSSIER
-   *
-   * En este HTML aparecen dos enlaces normales
-   * al PDF:
-   *
-   * 1. Acepto recibir información + dossier.
-   * 2. Solo descargar dossier.
-   *
-   * No contamos el VML de Outlook porque en
-   * navegador está dentro de un comentario condicional.
    */
-  var pdfLinks = Array.prototype.slice.call(
-    document.querySelectorAll(
-      'a[href$=".pdf"], a[href*=".pdf?"]'
-    )
-  );
+  const pdfLinks =
+    Array.from(
+      document.querySelectorAll(
+        'a[href$=".pdf"], a[href*=".pdf?"]'
+      )
+    );
 
   if (pdfLinks[0]) {
 
@@ -134,22 +137,21 @@
   /*
    * PREFERENCIAS Y BAJA
    */
-  Array.prototype.forEach.call(
-    document.querySelectorAll("a"),
-    function (link) {
+  document
+    .querySelectorAll("a")
+    .forEach(function (link) {
 
-      var texto = (
-        link.textContent || ""
-      )
-        .replace(/\s+/g, " ")
-        .trim()
-        .toLowerCase();
+      const texto =
+        (link.textContent || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .toLowerCase();
 
 
       if (
-        texto.indexOf(
+        texto.includes(
           "gestionar preferencias"
-        ) !== -1
+        )
       ) {
 
         link.href =
@@ -162,9 +164,9 @@
 
 
       if (
-        texto.indexOf(
+        texto.includes(
           "darse de baja"
-        ) !== -1
+        )
       ) {
 
         link.href =
@@ -175,8 +177,7 @@
 
       }
 
-    }
-  );
+    });
 
 })();
 </script>
